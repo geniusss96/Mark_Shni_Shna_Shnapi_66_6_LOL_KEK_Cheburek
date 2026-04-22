@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EventFlow (MVP)
 
-## Getting Started
+EventFlow — это веб-севис для организации мероприятий и управления регистрацией участников. Проект оптимизирован для бесплатного деплоя на Vercel (frontend & fullstack) с использованием базы данных PostgreSQL (например, Neon или Supabase).
 
-First, run the development server:
+## Полный Стек
+
+- **Frontend / Backend**: Next.js 14 (App Router)
+- **UI**: Tailwind CSS + shadcn/ui + Lucide React
+- **БД**: Prisma ORM + PostgreSQL
+- **Авторизация**: NextAuth.js (Credentials Provider)
+- **Валидация**: Zod + React Hook Form
+
+## Инструкция по локальному запуску
+
+### 1. Установка зависимостей
+
+Убедитесь, что у вас установлен Node.js >= 18.20.0
+
+```bash
+npm install
+```
+
+### 2. Настройка переменных окружения
+
+Создайте файл `.env` в корне проекта (рядом с `package.json`), основываясь на примере ниже:
+
+```env
+# URL для подключения к вашей базе данных PostgreSQL
+DATABASE_URL="postgresql://user:password@host/database"
+
+# Секретный ключ NextAuth (сгенерируйте командой: `openssl rand -base64 32`)
+NEXTAUTH_SECRET="ваша-секретная-строка"
+
+# Базовый URL для NextAuth (локально: http://localhost:3000)
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### 3. Инициализация и генерация базы данных
+
+Примените схему Prisma к вашей базе данных:
+
+```bash
+npx prisma db push
+```
+
+Сгенерируйте клиент Prisma:
+
+```bash
+npx prisma generate
+```
+
+### 4. Добавление администратора (через Prisma Studio)
+
+Для доступа в админ-панель заведите пользователя:
+```bash
+npx prisma studio
+```
+Откройте вкладку `User`, создайте запись:
+- `email`: `admin@eventflow.uz` (или ваш)
+- `password`: Для MVP, хеш пароля не обязателен, если в `[...nextauth]/route.ts` используется простое сравнение, но по умолчанию система предусматривает bcrypt. Используйте хэш bcrypt для вашего пароля или измените логику в NextAuth для MVP.
+
+### 5. Запуск сервера разработки
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Сайт доступен по адресу `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Инструкция по Деплою на Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Залейте этот репозиторий на GitHub.
+2. Подключите репозиторий в панели Vercel.
+3. Во время настройки проекта перейдите в **Environment Variables** и добавьте все переменные из `2. Настройка переменных окружения`. Для `NEXTAUTH_URL` укажите продакшн домен (например, `https://ваше-приложение.vercel.app`).
+4. Нажмите **Deploy**.
+5. Vercel сам сбилдит проект (см. файл `vercel.json` и команду сборки).
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Архитектура папок (`src/app`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/(landing)` — Публичные страницы (список событий, инфо о событии).
+- `/admin` — Защищенная панель управления (добавление событий, обзор списка гостей, скачивание CSV).
+- `/api` — Эндпоинты (Аутентификация, операции над БД, выгрузка CSV).
